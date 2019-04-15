@@ -106,9 +106,9 @@ suite "DiGraph":
     g.add_path([3.Node, 2.Node, 1.Node])
     check strip($g) == "{1:[],2:[1],3:[2]}"
 
-suite "Graph":
+suite "BasicGraph":
   setup:
-    var g = newGraph()
+    var g = newBasicGraph()
   test "contains":
     check 1 notin g
   test "add_node":
