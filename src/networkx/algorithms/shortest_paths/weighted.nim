@@ -1,4 +1,4 @@
-# vim: sw=2 ts=2 sts=2 tw=0 et:
+# vim: sw=4 ts=4 sts=4 tw=0 et:
 from ../../classes/wgraph import Node, successors, predecessors
 from ../../classes/graph import none
 from ../../util import raiseEx
@@ -36,11 +36,11 @@ template generate_procs*(Graph, Distance, Node: typedesc) =
   type GGraph = (ref Graph)
   proc dijkstra_multisource(G: GGraph
         , sources: sets.HashSet[Node]
-        , preds: var tables.Table[Node, seq[Node]]
-        , paths: var tables.Table[Node, seq[Node]]
+        , preds: ref tables.Table[Node, seq[Node]]
+        , paths: ref tables.Table[Node, seq[Node]]
         , cutoff: Distance
         , target: Node
-  ): tables.Table[Node, Distance] =
+  ): tables.TableRef[Node, Distance] =
     ## Uses Dijkstra's algorithm to find shortest weighted paths
     ## sources : non-empty iterable of nodes
     ##  Starting nodes for paths. If this is just an iterable containing
@@ -80,7 +80,7 @@ template generate_procs*(Graph, Distance, Node: typedesc) =
 
     #G_succ = G._succ if G.is_directed() else G._adj
 
-    var dist = tables.initTable[Node, Distance]()  # dictionary of final distances
+    var dist = tables.newTable[Node, Distance]()  # dictionary of final distances
     var seen = tables.initTable[Node, Distance]()
     # fringe is heapq with 3-tuples (distance,c,node)
     # use the count c to avoid comparing nodes (may not be able to)
@@ -111,14 +111,11 @@ template generate_procs*(Graph, Distance, Node: typedesc) =
         if v == target:
             break
         for w, cost in G.successors(v):
-            #cost = weight(v, w, e)
-            #if cost is None:
-            if cost == 0.Distance:
-                continue
+            #if cost == 0.Distance:
+            #    continue
             let vw_dist = dist[v] + cost
-            #if cutoff is not None:
-            #    if vu_dist > cutoff:
-            #        continue
+            if vw_dist > cutoff:
+                continue
             if w in dist:
                 if vw_dist < dist[w]:
                     raiseEx("Contradictory paths found: negative weights?")
@@ -126,16 +123,13 @@ template generate_procs*(Graph, Distance, Node: typedesc) =
                 seen[w] = vw_dist
                 binaryheap.push(fringe, (vw_dist, count, w))
                 inc(count)
-                #if paths != nil:
-                #    paths[w] = paths[v] & @[w]
-                paths[w] = paths[v] & @[w]
-                #if preds != nil:
-                #    preds[w] = @[v]
-                preds[w] = @[v]
+                if paths != nil:
+                    paths[w] = paths[v] & @[w]
+                if preds != nil:
+                    preds[w] = @[v]
             elif vw_dist == seen[w]:
-                #if preds != nil:
-                #    preds[w].add(v)
-                preds[w].add(v)
+                if preds != nil:
+                    preds[w].add(v)
 
     # The optional predecessor and path dictionaries can be accessed
     # by the caller via the pred and paths objects passed as arguments.
@@ -145,19 +139,16 @@ template generate_procs*(Graph, Distance, Node: typedesc) =
   proc multi_source_dijkstra_foo*(G: GGraph
     , sources: sets.HashSet[Node]
     , cutoff: Distance
-    ): (tables.Table[Node, Distance], tables.Table[Node, seq[Node]]) =
+    ): (tables.TableRef[Node, Distance], tables.TableRef[Node, seq[Node]]) =
     ## Find shortest weighted paths and lengths from a given set of source nodes.
     assert 0 != sets.len(sources), "sources must not be empty"
-    #[
-    weight = weight_function(G, weight)
-    ]#
-    var preds = tables.initTable[Node, seq[Node]]()  # dict of predecessors
-    var paths = tables.initTable[Node, seq[Node]]()  # dictionary of paths
+    var preds = tables.newTable[Node, seq[Node]]()  # dict of predecessors
+    var paths = tables.newTable[Node, seq[Node]]()  # dictionary of paths
     for s in sets.items(sources):
         paths[s] = @[s]
     let dist = dijkstra_multisource(G
             , sources
-            , preds=preds
+            , preds=nil #preds
             , paths=paths
             , cutoff=cutoff
             , target=G.none()
@@ -206,19 +197,19 @@ template generate_procs*(Graph, Distance, Node: typedesc) =
 
 when isMainModule:
 
-  # Generate the procs we need.
-  generate_procs(wgraph.Graph[int], int, wgraph.Node)
+    # Generate the procs we need.
+    generate_procs(wgraph.Graph[int], int, wgraph.Node)
 
-  # test weighted directed Graph
-  block:
-    let g = wgraph.newGraph[int]()
-    wgraph.add_path(g, 5, [1.Node, 2.Node, 9.Node])
-    wgraph.add_path(g, 4, [1.Node, 3.Node, 7.Node, 9.Node])
-    let path = dijkstra_path(g, 1.Node, 9.Node, Node.high)
-    assert len(path) == 3
-  block:
-    let g = wgraph.newGraph[int]()
-    wgraph.add_path(g, 5, [1.Node, 2.Node, 9.Node])
-    wgraph.add_path(g, 3, [1.Node, 3.Node, 7.Node, 9.Node])
-    let path = dijkstra_path(g, 1.Node, 9.Node, Node.high)
-    assert len(path) == 4
+    # test weighted directed Graph
+    block:
+        let g = wgraph.newGraph[int]()
+        wgraph.add_path(g, 5, [1.Node, 2.Node, 9.Node])
+        wgraph.add_path(g, 4, [1.Node, 3.Node, 7.Node, 9.Node])
+        let path = dijkstra_path(g, 1.Node, 9.Node, Node.high)
+        assert len(path) == 3
+    block:
+        let g = wgraph.newGraph[int]()
+        wgraph.add_path(g, 5, [1.Node, 2.Node, 9.Node])
+        wgraph.add_path(g, 3, [1.Node, 3.Node, 7.Node, 9.Node])
+        let path = dijkstra_path(g, 1.Node, 9.Node, Node.high)
+        assert len(path) == 4
