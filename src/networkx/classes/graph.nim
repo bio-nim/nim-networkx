@@ -10,19 +10,20 @@ type
   ## We use simple integers for Nodes, Weights, etc.
   ## If you need specific types, you must keep your own mapping separately.
   Node* = int32
-  Weight* = int32
-  AttrKey* = int32
-  Attribute* = int32
-
   Edge* = tuple[u, v: Node]
 
   DiGraph* = object of RootObj
-    adj: tables.Table[Node, sets.HashSet[Node]] ## Adjacency
+    adj*: tables.Table[Node, sets.HashSet[Node]] ## Adjacency
     #node_attrs: tables.Table[AttrKey, ref tables.Table[Node, Attribute]] ## [key][node] == attr
     #edge_attrs: tables.Table[AttrKey, ref tables.Table[Edge, Attribute]] ## [key][(u, v)] == attr
     #num_unique_edges: int # where 2,3 and 3,2 are counted only once
     #num_self_edges: int
   BasicGraph* = object of DiGraph
+
+proc none*(g: ref DiGraph): Node =
+  ## This is used as a sentinel in graph algs, so this value should *never*
+  ## be inserted into the Graph.
+  return 0.Node
 
 proc initDiGraph*(g: ref DiGraph) =
   g.adj = tables.initTable[Node, sets.HashSet[Node]]()
@@ -50,6 +51,7 @@ proc contains*(g: ref DiGraph, node: Node): bool =
   return g.has_node(node)
 
 proc add_node*(g: ref DiGraph, i: Node): Node {.discardable.} =
+  assert i != g.none()
   if not tables.contains(g.adj, i):
     g.adj[i] = sets.HashSet[Node]()
     sets.init(g.adj[i])
@@ -189,8 +191,16 @@ iterator edges*(g: ref BasicGraph): Edge =
       if u <= v:
         yield (u, v)
 
+iterator predecessors*(g: ref DiGraph, v: Node): Node =
+  for u in sets.items(g.adj[v]):
+    yield u
 
-proc test() =
+iterator successors*(g: ref DiGraph, u: Node): Node =
+  for v in sets.items(g.adj[u]):
+    yield v
+
+
+when isMainModule:
   block: # test BasicGraph
     var g = newBasicGraph()
     assert 1 notin g
@@ -264,6 +274,3 @@ proc test() =
     g.clear()
     assert len(g) == 0
     assert g.number_of_edges() == 0
-
-when isMainModule:
-  test()

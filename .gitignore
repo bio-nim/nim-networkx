@@ -1,2 +1,5 @@
 nimcache/
 /src/networkx/classes/graph
+/src/networkx/classes/wgraph
+/src/networkx/algorithms/shortest_paths/unweighted
+/src/networkx/algorithms/shortest_paths/weighted
