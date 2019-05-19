@@ -55,6 +55,7 @@ proc remove_node*[W](g: ref Graph[W], u: Node) =
   assert u in g
   for v in graph.successors(g, u):
     remove_edge[W](g, (u, v))
+  graph.remove_node(g, u)
 
 proc add_path*[W](g: ref Graph[W], w: W, nodes: openarray[Node]) =
   var ready = false
