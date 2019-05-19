@@ -7,6 +7,7 @@ import networkx/classes/graph
 func strip(s: string): string =
   return strutils.multiReplace(s, (" ", ""), ("\t", ""), ("\l", ""))
 
+#[
 suite "DiGraph":
   setup:
     var g = newDiGraph()
@@ -105,6 +106,7 @@ suite "DiGraph":
     check strip($g) == "{}"
     g.add_path([3.Node, 2.Node, 1.Node])
     check strip($g) == "{1:[],2:[1],3:[2]}"
+]#
 
 suite "BasicGraph":
   setup:

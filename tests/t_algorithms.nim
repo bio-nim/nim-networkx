@@ -12,18 +12,18 @@ proc toSet(v: openarray[int]): sets.HashSet[Node] =
 
 suite "connected":
   setup:
-    var g = newDiGraph()
+    var g = newBasicGraph()
   test "reachable":
     g.addEdge(1, 2)
     g.addEdge(1, 3)
     g.addEdge(11, 12)
     g.addEdge(11, 13)
-    block:
-      let r = sequtils.toSeq(reachable(g, 1))
-      let got = sets.toHashSet(r)
-      let expected = toSet(@[2, 3])
-      check got == expected
-    g.addEdge(2, 1)
+    #block:
+    #  let r = sequtils.toSeq(reachable(g, 1))
+    #  let got = sets.toHashSet(r)
+    #  let expected = toSet(@[2, 3])
+    #  check got == expected
+    #g.addEdge(2, 1)
     block:
       let r = sequtils.toSeq(reachable(g, 1))
       let got = sets.toHashSet(r)
@@ -32,22 +32,22 @@ suite "connected":
     block:
       let r = sequtils.toSeq(reachable(g, 11))
       let got = sets.toHashSet(r)
-      let expected = toSet(@[12, 13])
+      let expected = toSet(@[11, 12, 13])
       check got == expected
   test "connected_components":
     g.addEdge(1, 2)
     g.addEdge(1, 3)
     g.addEdge(11, 12)
     g.addEdge(11, 13)
-    block:
-      # Fail for non-bidi graph.
-      expect(NetworkxError):
-        discard sequtils.toSeq(connected_components(g))
-    # Add reverse edges.
-    g.addEdge(2, 1)
-    g.addEdge(3, 1)
-    g.addEdge(12, 11)
-    g.addEdge(13, 11)
+    #block:
+    #  # Fail for non-bidi graph.
+    #  expect(NetworkxError):
+    #    discard sequtils.toSeq(connected_components(g))
+    ## Add reverse edges.
+    #g.addEdge(2, 1)
+    #g.addEdge(3, 1)
+    #g.addEdge(12, 11)
+    #g.addEdge(13, 11)
     block:
       let c = sequtils.toSeq(connected_components(g))
       check c.len() == 2

@@ -9,7 +9,7 @@ from strutils import `%`, format
 export util.NetworkxError
 
 
-iterator reachable*(g: ref graph.DiGraph, source: Node): Node =
+iterator reachable*(g: ref graph.BasicGraph, source: Node): Node =
   ## A fast BFS node generator.
   ## Yield all nodes reachable from source. (May or may not include source.)
   var
@@ -24,9 +24,9 @@ iterator reachable*(g: ref graph.DiGraph, source: Node): Node =
         sets.incl(reached, v)
         deques.addLast(nextnodes, v)
 
-iterator connected_components*(g: ref graph.DiGraph): seq[Node] =
+iterator connected_components*(g: ref graph.BasicGraph): seq[Node] =
   ## Yield unsorted seqs of connected components.
-  ## If the graph is not bidi, an exception might be thrown.
+  ## If the graph is not bidi(symmetric edges), an exception might be thrown.
   var seen = sets.initHashSet[Node]()
   for u in graph.nodes(g):
     if u notin seen:
