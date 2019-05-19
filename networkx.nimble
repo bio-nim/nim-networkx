@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.2.0"
+version       = "1.0.0"
 author        = "Christopher Dunn"
 description   = "Nim version of Python networkx"
 license       = "BSD-3-Clause"
