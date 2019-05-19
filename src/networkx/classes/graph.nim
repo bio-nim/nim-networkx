@@ -72,7 +72,7 @@ proc contains*(g: ref BasicGraph, edge: Edge): bool =
   return g.has_edge(edge.u, edge.v)
 
 proc add_edge*(g: ref BasicGraph, u, v: Node) =
-  echo format(" basicgraph.add_edge($#, $#)", u, v)
+  #echo format(" basicgraph.add_edge($#, $#)", u, v)
   ## Add forward and backward edges.
   g.add_node(u)
   g.add_node(v)
@@ -92,7 +92,7 @@ proc add_path*(g: ref BasicGraph, nodes: openarray[Node]) =
 
 proc remove_edge*(g: ref BasicGraph, u, v: Node) =
   ## Nodes remain in Graph.
-  echo format(" basicgraph.remove_edge($#, $#)", u, v)
+  #echo format(" basicgraph.remove_edge($#, $#)", u, v)
   if (u notin g) or (v notin g):
     return
   g.adj[u].excl(v)

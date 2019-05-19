@@ -10,34 +10,42 @@ from strutils import format
 export Node
 
 type
-  Graph*[Weight] = object of BasicGraph
-    weights: tables.Table[Edge, Weight]
+  BiEdge* = object
+    u, v: Node
 
-proc hash*(e: Edge): hashes.Hash =
+proc hash*(e: BiEdge): hashes.Hash =
+  return hashes.hash( (e.u, e.v) )
+
+proc getBiEdge(e: Edge): BiEdge =
   if e.v < e.u:
-    return hashes.hash([e.v.int, e.u.int])
+    return BiEdge(u: e.v, v: e.u)
   else:
-    return hashes.hash([e.u.int, e.v.int])
+    return BiEdge(u: e.u, v: e.v)
+
+type
+  Graph*[Weight] = object of BasicGraph
+    weights: tables.Table[BiEdge, Weight]
 
 proc newGraph*[W](): ref Graph[W] =
   new(result)
   graph.initBasicGraph(result)
-  result.weights = tables.initTable[Edge, W](1024)
+  result.weights = tables.initTable[BiEdge, W](1024)
 
 proc weight*[W](g: ref Graph[W], u, v: Node): W =
   ## If not found, return default W (probably 0).
-  return tables.getOrDefault(g.weights, (u, v))
+  return tables.getOrDefault(g.weights, getBiEdge((u, v)))
 
 proc add_edge*[W](g: ref Graph[W], w: W, e: Edge) =
   ## If the edge already existed, update its weight.
   graph.add_edge(g, e.u, e.v)
-  g.weights[e] = w
+  g.weights[getBiEdge(e)] = w
+  #echo format(" Weight($#)=$#", e, g.weights[e])
 
 proc remove_edge*[W](g: ref Graph[W], e: Edge): W {.discardable.} =
   ## Nodes remain in Graph.
   ## Error if e not in graph.
-  echo format("remove_edge($#)", e)
-  let existed = tables.take(g.weights, e, result)
+  #echo format("remove_edge($#)", e)
+  let existed = tables.take(g.weights, getBiEdge(e), result)
   if not existed:
     let msg = format("$# was not in the weights table for this graph.", e)
     raiseEx(msg)
@@ -45,8 +53,6 @@ proc remove_edge*[W](g: ref Graph[W], e: Edge): W {.discardable.} =
 
 proc remove_node*[W](g: ref Graph[W], u: Node) =
   assert u in g
-  for v in graph.successors(g, u):
-    echo format(" found successor $# -> $#", u, v)
   for v in graph.successors(g, u):
     remove_edge[W](g, (u, v))
 
