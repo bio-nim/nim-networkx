@@ -2,7 +2,7 @@
 from ../../classes/graph import Node, contains, add_node, successors, predecessors, add_edge
 from "../../util" import raiseEx
 from deques import nil
-#from sequtils import nil
+from sequtils import nil
 from sets import contains, incl, items
 from strutils import `%`, format
 
@@ -24,15 +24,16 @@ iterator reachable*(g: ref graph.DiGraph, source: Node): Node =
         sets.incl(reached, v)
         deques.addLast(nextnodes, v)
 
-iterator connected_components*(g: ref graph.DiGraph): sets.HashSet[Node] =
+iterator connected_components*(g: ref graph.DiGraph): seq[Node] =
+  ## Yield unsorted seqs of connected components.
+  ## If the graph is not bidi, an exception might be thrown.
   var seen = sets.initHashSet[Node]()
   for u in graph.nodes(g):
     if u notin seen:
-      var c = sets.initHashSet[Node]()
-      for v in reachable(g, u):
-        c.incl(v)
+      var c = sequtils.toSeq(reachable(g, u))
       if u notin c:
         let msg = "Source node not reachable from self. Graph must be undirected or bidirectional."
         raiseEx(msg)
       yield c
-      seen.incl(c)
+      for v in c:
+        seen.incl(v)
