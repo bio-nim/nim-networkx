@@ -2,8 +2,11 @@
 from ../../classes/graph import Node, contains, add_node, successors, predecessors, add_edge
 from "../../util" import raiseEx
 from deques import nil
-from sets import contains
+#from sequtils import nil
+from sets import contains, incl, items
 from strutils import `%`, format
+
+export util.NetworkxError
 
 
 iterator reachable*(g: ref graph.DiGraph, source: Node): Node =
@@ -20,3 +23,16 @@ iterator reachable*(g: ref graph.DiGraph, source: Node): Node =
         yield v
         sets.incl(reached, v)
         deques.addLast(nextnodes, v)
+
+iterator connected_components*(g: ref graph.DiGraph): sets.HashSet[Node] =
+  var seen = sets.initHashSet[Node]()
+  for u in graph.nodes(g):
+    if u notin seen:
+      var c = sets.initHashSet[Node]()
+      for v in reachable(g, u):
+        c.incl(v)
+      if u notin c:
+        let msg = "Source node not reachable from self. Graph must be undirected or bidirectional."
+        raiseEx(msg)
+      yield c
+      seen.incl(c)

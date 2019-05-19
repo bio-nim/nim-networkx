@@ -3,14 +3,14 @@ import unittest
 import networkx/classes/graph
 import networkx/algorithms/components/connected
 from sequtils import nil
-from sets import `==`
+from sets import `==`, len
 
 proc toSet(v: openarray[int]): sets.HashSet[Node] =
   sets.init(result)
   for k in v:
     sets.incl(result, k.Node)
 
-suite "algorithms":
+suite "connected":
   setup:
     var g = newDiGraph()
   test "reachable":
@@ -34,3 +34,22 @@ suite "algorithms":
       let got = sets.toHashSet(r)
       let expected = toSet(@[12, 13])
       check got == expected
+  test "connected_components":
+    g.addEdge(1, 2)
+    g.addEdge(1, 3)
+    g.addEdge(11, 12)
+    g.addEdge(11, 13)
+    block:
+      # Fail for non-bidi graph.
+      expect(NetworkxError):
+        discard sequtils.toSeq(connected_components(g))
+    # Add reverse edges.
+    g.addEdge(2, 1)
+    g.addEdge(3, 1)
+    g.addEdge(12, 11)
+    g.addEdge(13, 11)
+    block:
+      let c = sequtils.toSeq(connected_components(g))
+      check c.len() == 2
+      check c[0].len() == 3
+      check c[0].len() == 3
